@@ -15,6 +15,7 @@ const navItems = [
   { icon: CalendarClock, label: "Rotaciones", path: "/admin/rotaciones" },
   { icon: DollarSign, label: "Apuestas", path: "/admin/apuestas" },
   { icon: Megaphone, label: "Anuncios", path: "/admin/anuncios" },
+  { icon: UserCog, label: "Usuarios", path: "/admin/usuarios" },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

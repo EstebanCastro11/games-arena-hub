@@ -50,6 +50,7 @@ const App = () => (
             <Route path="/admin/rotaciones" element={<ProtectedRoute allowedRoles={["admin"]}><AdminRotations /></ProtectedRoute>} />
             <Route path="/admin/apuestas" element={<ProtectedRoute allowedRoles={["admin"]}><AdminBetting /></ProtectedRoute>} />
             <Route path="/admin/anuncios" element={<ProtectedRoute allowedRoles={["admin"]}><AdminAnnouncements /></ProtectedRoute>} />
+            <Route path="/admin/usuarios" element={<ProtectedRoute allowedRoles={["admin"]}><AdminUsers /></ProtectedRoute>} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>

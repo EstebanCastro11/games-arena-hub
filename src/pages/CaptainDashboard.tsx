@@ -18,6 +18,7 @@ export default function CaptainDashboard() {
   const timer = useRotationTimer();
   const currentRotation = useCurrentRotation();
   const queryClient = useQueryClient();
+  useForceReloadOnRotationChange();
 
   // Realtime subscription for matchups
   useEffect(() => {

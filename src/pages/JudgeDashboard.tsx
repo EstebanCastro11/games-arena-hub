@@ -16,6 +16,7 @@ export default function JudgeDashboard() {
   const { data: allMatchups = [] } = useAllMatchupsWithDetails();
   const { data: rotations = [] } = useRotations();
   const queryClient = useQueryClient();
+  useForceReloadOnRotationChange();
 
   // Find bases assigned to this judge (day 1 and day 2)
   const myBases = bases.filter((b: any) => b.judge_user_id === user?.id);

@@ -18,6 +18,7 @@ export default function Hub() {
   const timer = useRotationTimer();
   const currentRotation = useCurrentRotation();
   const queryClient = useQueryClient();
+  useForceReloadOnRotationChange();
 
   // Realtime for matchups
   useEffect(() => {

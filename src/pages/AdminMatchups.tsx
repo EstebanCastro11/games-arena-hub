@@ -86,6 +86,8 @@ export default function AdminMatchups() {
           </Select>
         </div>
 
+        <MatchupValidator matchups={allMatchups as any} />
+
         {isLoading ? (
           <div className="text-center py-12 text-muted-foreground">Cargando...</div>
         ) : (

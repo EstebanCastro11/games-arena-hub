@@ -70,10 +70,16 @@ export default function MatchupHeatmap({ matchups }: { matchups: Matchup[] }) {
 
   return (
     <div>
-      <h4 className="font-display text-sm text-muted-foreground mb-3 flex items-center gap-2">
-        MATRIZ DE ENFRENTAMIENTOS
-      </h4>
-
+      <div className="flex items-center justify-between mb-3">
+        <h4 className="font-display text-sm text-muted-foreground flex items-center gap-2">
+          MATRIZ DE ENFRENTAMIENTOS
+        </h4>
+        <ToggleGroup type="single" value={dayFilter} onValueChange={(v) => v && setDayFilter(v)} className="bg-secondary/50 rounded-lg p-0.5">
+          <ToggleGroupItem value="all" className="text-xs px-3 h-7 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">Todos</ToggleGroupItem>
+          <ToggleGroupItem value="1" className="text-xs px-3 h-7 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">Día 1</ToggleGroupItem>
+          <ToggleGroupItem value="2" className="text-xs px-3 h-7 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">Día 2</ToggleGroupItem>
+        </ToggleGroup>
+      </div>
       {/* Legend */}
       <div className="flex items-center gap-4 mb-3 text-[10px] text-muted-foreground">
         <span className="flex items-center gap-1">

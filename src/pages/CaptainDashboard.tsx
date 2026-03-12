@@ -74,6 +74,38 @@ export default function CaptainDashboard() {
       </header>
 
       <div className="max-w-4xl mx-auto px-4 py-8">
+        {/* Rotation Timer Banner */}
+        {(timer.isActive || currentRotation) && (
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+            className="bg-card card-shadow rounded-2xl p-6 mb-6 glow-primary border-2 border-primary/30">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-2 h-2 rounded-full bg-destructive live-pulse" />
+                  <span className="text-xs text-muted-foreground font-medium">EN VIVO</span>
+                </div>
+                {currentRotation && (
+                  <h2 className="font-display text-2xl gradient-text">
+                    DÍA {currentRotation.day} — ROTACIÓN {currentRotation.rotation_number}
+                  </h2>
+                )}
+              </div>
+              {timer.isActive && (
+                <div className="text-center">
+                  <div className="flex items-center gap-1 text-[10px] text-muted-foreground mb-1">
+                    <Timer className="w-3 h-3" /> TIEMPO
+                  </div>
+                  <div className={`font-display text-4xl md:text-5xl tabular-nums ${
+                    timer.remainingSeconds <= 60 ? 'text-destructive animate-pulse' : 'gradient-text'
+                  }`}>
+                    {formatTime(timer.remainingSeconds)}
+                  </div>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
           <p className="text-sm text-muted-foreground mb-1">Bienvenido, Capitán</p>
           <h1 className="font-display text-4xl gradient-text mb-8">{displayName || "Capitán"}</h1>

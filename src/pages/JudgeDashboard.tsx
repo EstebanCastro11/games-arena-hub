@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Swords, LogOut, MapPin, Check } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useBases, useAllMatchupsWithDetails, useRotations } from "@/hooks/useGameData";
+import { useForceReloadOnRotationChange } from "@/hooks/useRotationTimer";
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";

@@ -275,7 +275,9 @@ export type Database = {
           avatar_url: string | null
           created_at: string
           display_name: string
+          epik_id: string | null
           id: string
+          phone: string | null
           updated_at: string
           user_id: string
         }
@@ -283,7 +285,9 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           display_name: string
+          epik_id?: string | null
           id?: string
+          phone?: string | null
           updated_at?: string
           user_id: string
         }
@@ -291,7 +295,9 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           display_name?: string
+          epik_id?: string | null
           id?: string
+          phone?: string | null
           updated_at?: string
           user_id?: string
         }

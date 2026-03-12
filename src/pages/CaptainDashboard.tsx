@@ -51,7 +51,13 @@ export default function CaptainDashboard() {
     navigate("/login");
   };
 
-  if (!myTeam) return <div className="min-h-screen bg-background flex items-center justify-center text-muted-foreground">Cargando...</div>;
+  if (!myTeam) return (
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center text-muted-foreground gap-3 px-4">
+      <p className="font-display text-xl">SIN EQUIPO ASIGNADO</p>
+      <p className="text-sm text-center">Un administrador debe asignarte a un equipo desde el panel de usuarios.</p>
+      <button onClick={handleSignOut} className="mt-4 text-sm text-primary hover:underline">Cerrar sesión</button>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-background">

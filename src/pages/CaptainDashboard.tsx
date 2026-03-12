@@ -37,8 +37,8 @@ export default function CaptainDashboard() {
     return () => { supabase.removeChannel(channel); };
   }, [queryClient]);
 
-  // Simulate team assignment (first team for demo)
-  const myTeam = leaderboard[5] || leaderboard[0];
+  // Find the team assigned to this captain
+  const myTeam = allTeams.find((t: any) => t.captain_user_id === user?.id) || null;
   const myRank = myTeam ? leaderboard.findIndex(t => t.id === myTeam.id) + 1 : 0;
 
   // Find matchups for this team

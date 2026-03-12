@@ -42,7 +42,7 @@ export default function AdminUsers() {
 
   useEffect(() => { fetchProfiles(); }, []);
 
-  const assignRole = async (userId: string, role: "captain" | "judge" | "viewer") => {
+  const assignRole = async (userId: string, role: "captain" | "judge" | "viewer" | "admin") => {
     // Delete existing role
     await supabase.from("user_roles").delete().eq("user_id", userId);
     // Insert new role
@@ -191,6 +191,7 @@ export default function AdminUsers() {
                           <option value="viewer">Viewer</option>
                           <option value="captain">Capitán</option>
                           <option value="judge">Juez</option>
+                          <option value="admin">Admin</option>
                         </select>
                       </div>
 

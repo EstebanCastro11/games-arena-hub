@@ -18,6 +18,7 @@ import AdminScoring from "./pages/AdminScoring";
 import AdminRotations from "./pages/AdminRotations";
 import AdminBetting from "./pages/AdminBetting";
 import AdminAnnouncements from "./pages/AdminAnnouncements";
+import AdminUsers from "./pages/AdminUsers";
 import CaptainDashboard from "./pages/CaptainDashboard";
 import JudgeDashboard from "./pages/JudgeDashboard";
 import NotFound from "./pages/NotFound";

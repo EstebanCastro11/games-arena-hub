@@ -20,6 +20,8 @@ const navItems = [
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
+  const { displayName, signOut } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-background flex">

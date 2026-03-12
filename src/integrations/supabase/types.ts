@@ -161,6 +161,141 @@ export type Database = {
           },
         ]
       }
+      betting_event_teams: {
+        Row: {
+          event_id: string
+          id: string
+          team_id: string
+        }
+        Insert: {
+          event_id: string
+          id?: string
+          team_id: string
+        }
+        Update: {
+          event_id?: string
+          id?: string
+          team_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "betting_event_teams_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "betting_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "betting_event_teams_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      betting_events: {
+        Row: {
+          activated_at: string | null
+          closed_at: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          resolved_at: string | null
+          status: string
+          title: string
+          winner_team_id: string | null
+        }
+        Insert: {
+          activated_at?: string | null
+          closed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          resolved_at?: string | null
+          status?: string
+          title: string
+          winner_team_id?: string | null
+        }
+        Update: {
+          activated_at?: string | null
+          closed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          resolved_at?: string | null
+          status?: string
+          title?: string
+          winner_team_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "betting_events_winner_team_id_fkey"
+            columns: ["winner_team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      captain_bets: {
+        Row: {
+          amount: number
+          created_at: string
+          event_id: string
+          id: string
+          payout: number
+          placed_by: string
+          predicted_team_id: string
+          status: string
+          team_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          event_id: string
+          id?: string
+          payout?: number
+          placed_by: string
+          predicted_team_id: string
+          status?: string
+          team_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          event_id?: string
+          id?: string
+          payout?: number
+          placed_by?: string
+          predicted_team_id?: string
+          status?: string
+          team_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "captain_bets_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "betting_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "captain_bets_predicted_team_id_fkey"
+            columns: ["predicted_team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "captain_bets_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       match_results: {
         Row: {
           bonus_points: number

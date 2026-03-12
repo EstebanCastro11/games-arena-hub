@@ -3,6 +3,8 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { AuthProvider } from "@/hooks/useAuth";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import Hub from "./pages/Hub";
 import Leaderboard from "./pages/Leaderboard";
 import Betting from "./pages/Betting";
@@ -15,6 +17,7 @@ import AdminScoring from "./pages/AdminScoring";
 import AdminRotations from "./pages/AdminRotations";
 import AdminBetting from "./pages/AdminBetting";
 import AdminAnnouncements from "./pages/AdminAnnouncements";
+import CaptainDashboard from "./pages/CaptainDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -25,21 +28,66 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Hub />} />
-          <Route path="/leaderboard" element={<Leaderboard />} />
-          <Route path="/apuestas" element={<Betting />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/admin/equipos" element={<AdminTeams />} />
-          <Route path="/admin/competencias" element={<AdminCompetitions />} />
-          <Route path="/admin/enfrentamientos" element={<AdminMatchups />} />
-          <Route path="/admin/puntajes" element={<AdminScoring />} />
-          <Route path="/admin/rotaciones" element={<AdminRotations />} />
-          <Route path="/admin/apuestas" element={<AdminBetting />} />
-          <Route path="/admin/anuncios" element={<AdminAnnouncements />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <Routes>
+            {/* Public */}
+            <Route path="/" element={<Hub />} />
+            <Route path="/leaderboard" element={<Leaderboard />} />
+            <Route path="/apuestas" element={<Betting />} />
+            <Route path="/login" element={<Login />} />
+
+            {/* Captain */}
+            <Route path="/capitan" element={
+              <ProtectedRoute allowedRoles={["captain"]}>
+                <CaptainDashboard />
+              </ProtectedRoute>
+            } />
+
+            {/* Admin */}
+            <Route path="/admin" element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/equipos" element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminTeams />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/competencias" element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminCompetitions />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/enfrentamientos" element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminMatchups />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/puntajes" element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminScoring />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/rotaciones" element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminRotations />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/apuestas" element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminBetting />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/anuncios" element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminAnnouncements />
+              </ProtectedRoute>
+            } />
+
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

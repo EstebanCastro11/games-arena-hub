@@ -30,7 +30,7 @@ export default function MatchupHeatmap({ matchups }: { matchups: Matchup[] }) {
     const teamMap = new Map<string, Team>();
     const countMap = new Map<string, number>();
 
-    for (const m of matchups) {
+    for (const m of filtered) {
       if (!m.team_a || !m.team_b) continue;
       teamMap.set(m.team_a.id, m.team_a);
       teamMap.set(m.team_b.id, m.team_b);

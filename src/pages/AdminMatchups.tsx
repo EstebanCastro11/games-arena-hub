@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Swords, Pencil, Trash2, Filter } from "lucide-react";
+import MatchupValidator from "@/components/MatchupValidator";
 import { useAllMatchupsWithDetails, useRotations, useTeams, useBases } from "@/hooks/useGameData";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
@@ -84,6 +85,8 @@ export default function AdminMatchups() {
             </SelectContent>
           </Select>
         </div>
+
+        <MatchupValidator matchups={allMatchups as any} />
 
         {isLoading ? (
           <div className="text-center py-12 text-muted-foreground">Cargando...</div>

@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { Trophy, LogOut, TrendingUp, DollarSign, CalendarClock, MapPin, Timer } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useTeams } from "@/hooks/useGameData";
 import { useLeaderboard, useAllMatchupsWithDetails, useRotations } from "@/hooks/useGameData";
 import { useRotationTimer, useCurrentRotation, useForceReloadOnRotationChange, formatTime } from "@/hooks/useRotationTimer";
 import { Link, useNavigate } from "react-router-dom";
@@ -10,9 +11,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 
 export default function CaptainDashboard() {
-  const { displayName, signOut } = useAuth();
+  const { user, displayName, signOut } = useAuth();
   const navigate = useNavigate();
   const { data: leaderboard = [] } = useLeaderboard();
+  const { data: allTeams = [] } = useTeams();
   const { data: allMatchups = [] } = useAllMatchupsWithDetails();
   const { data: rotations = [] } = useRotations();
   const timer = useRotationTimer();
@@ -35,8 +37,8 @@ export default function CaptainDashboard() {
     return () => { supabase.removeChannel(channel); };
   }, [queryClient]);
 
-  // Simulate team assignment (first team for demo)
-  const myTeam = leaderboard[5] || leaderboard[0];
+  // Find the team assigned to this captain
+  const myTeam = allTeams.find((t: any) => t.captain_user_id === user?.id) || null;
   const myRank = myTeam ? leaderboard.findIndex(t => t.id === myTeam.id) + 1 : 0;
 
   // Find matchups for this team
@@ -49,7 +51,13 @@ export default function CaptainDashboard() {
     navigate("/login");
   };
 
-  if (!myTeam) return <div className="min-h-screen bg-background flex items-center justify-center text-muted-foreground">Cargando...</div>;
+  if (!myTeam) return (
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center text-muted-foreground gap-3 px-4">
+      <p className="font-display text-xl">SIN EQUIPO ASIGNADO</p>
+      <p className="text-sm text-center">Un administrador debe asignarte a un equipo desde el panel de usuarios.</p>
+      <button onClick={handleSignOut} className="mt-4 text-sm text-primary hover:underline">Cerrar sesión</button>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-background">

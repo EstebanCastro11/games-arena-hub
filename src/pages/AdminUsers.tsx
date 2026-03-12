@@ -191,6 +191,7 @@ export default function AdminUsers() {
                           <option value="viewer">Viewer</option>
                           <option value="captain">Capitán</option>
                           <option value="judge">Juez</option>
+                          <option value="admin">Admin</option>
                         </select>
                       </div>
 

@@ -69,8 +69,14 @@ export default function AdminRotations() {
     await supabase.from("rotations").update({ status: "pending" }).neq("status", "pending");
     await supabase.from("matchups").update({ status: "pending" }).neq("status", "pending");
     await supabase.from("rotation_timer").update({ status: "expired" }).eq("status", "active");
+    // Delete all results and reset team scores
+    await supabase.from("match_results").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+    await supabase.from("teams").update({
+      total_points: 0, wins: 0, losses: 0, draws: 0, matches_played: 0,
+    }).neq("id", "00000000-0000-0000-0000-000000000000");
     queryClient.invalidateQueries({ queryKey: ["rotations"] });
     queryClient.invalidateQueries({ queryKey: ["all-matchups"] });
+    queryClient.invalidateQueries({ queryKey: ["teams"] });
     // Small delay to let state settle
     setTimeout(() => activateRotation(sortedRotations[0]), 300);
   };

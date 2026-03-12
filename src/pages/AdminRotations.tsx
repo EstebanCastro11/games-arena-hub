@@ -20,6 +20,8 @@ export default function AdminRotations() {
   const queryClient = useQueryClient();
   const [isStarting, setIsStarting] = useState(false);
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
+  const [fullResetConfirmOpen, setFullResetConfirmOpen] = useState(false);
+  const [isFullResetting, setIsFullResetting] = useState(false);
 
   const sortedRotations = [...rotations].sort((a: any, b: any) => a.day - b.day || a.rotation_number - b.rotation_number);
 

@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 
 export default function CaptainDashboard() {
-  const { displayName, signOut } = useAuth();
+  const { user, displayName, signOut } = useAuth();
   const navigate = useNavigate();
   const { data: leaderboard = [] } = useLeaderboard();
   const { data: allMatchups = [] } = useAllMatchupsWithDetails();

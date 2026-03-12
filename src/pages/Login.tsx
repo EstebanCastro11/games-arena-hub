@@ -1,13 +1,38 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Trophy, Eye, EyeOff, Lock } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Trophy, Eye, EyeOff, Lock, Loader2 } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [role, setRole] = useState<"admin" | "captain">("admin");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const { signIn } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setIsLoading(true);
+
+    const { error } = await signIn(email, password);
+
+    if (error) {
+      setError("Credenciales incorrectas. Intenta de nuevo.");
+      setIsLoading(false);
+      return;
+    }
+
+    // Role-based redirect will happen after auth state updates
+    // Small delay to let role fetch complete
+    setTimeout(() => {
+      // Check role from the fetched data
+      navigate("/admin");
+    }, 500);
+  };
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -31,27 +56,22 @@ export default function Login() {
           <h2 className="font-display text-2xl mb-1">INICIAR SESIÓN</h2>
           <p className="text-sm text-muted-foreground mb-6">Ingresa tus credenciales para continuar</p>
 
-          {/* Role Toggle */}
-          <div className="flex bg-secondary rounded-lg p-1 mb-6">
-            <button
-              onClick={() => setRole("admin")}
-              className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${
-                role === "admin" ? "gradient-primary text-primary-foreground" : "text-muted-foreground"
-              }`}
-            >
-              Admin / Juez
-            </button>
-            <button
-              onClick={() => setRole("captain")}
-              className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${
-                role === "captain" ? "gradient-primary text-primary-foreground" : "text-muted-foreground"
-              }`}
-            >
-              Capitán
-            </button>
+          {/* Test credentials info */}
+          <div className="bg-secondary/50 rounded-xl p-4 mb-6 space-y-2">
+            <p className="text-xs font-medium text-foreground">🧪 Usuarios de prueba:</p>
+            <div className="text-xs text-muted-foreground space-y-1">
+              <p><strong className="text-foreground">Admin:</strong> admin@thegames.com / admin123</p>
+              <p><strong className="text-foreground">Capitán:</strong> capitan@thegames.com / capitan123</p>
+            </div>
           </div>
 
-          <div className="space-y-4">
+          {error && (
+            <div className="bg-destructive/10 border border-destructive/30 text-destructive rounded-lg px-4 py-2 mb-4 text-sm">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="text-sm font-medium text-foreground mb-1.5 block">
                 Correo electrónico
@@ -61,6 +81,7 @@ export default function Login() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="tu@eafit.edu.co"
+                required
                 className="w-full bg-background rounded-lg px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-card"
               />
             </div>
@@ -75,6 +96,7 @@ export default function Login() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
+                  required
                   className="w-full bg-background rounded-lg px-4 py-3 pr-10 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-card"
                 />
                 <button
@@ -87,18 +109,20 @@ export default function Login() {
               </div>
             </div>
 
-            <button className="w-full gradient-primary py-3 rounded-lg font-medium text-primary-foreground hover:scale-[1.02] active:scale-[0.98] transition-transform flex items-center justify-center gap-2">
-              <Lock className="w-4 h-4" /> Entrar
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full gradient-primary py-3 rounded-lg font-medium text-primary-foreground hover:scale-[1.02] active:scale-[0.98] transition-transform flex items-center justify-center gap-2 disabled:opacity-70"
+            >
+              {isLoading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <>
+                  <Lock className="w-4 h-4" /> Entrar
+                </>
+              )}
             </button>
-          </div>
-
-          {role === "captain" && (
-            <div className="mt-4 text-center">
-              <Link to="/registro" className="text-sm text-primary hover:underline">
-                ¿No tienes cuenta? Regístrate como capitán
-              </Link>
-            </div>
-          )}
+          </form>
         </div>
 
         <p className="text-center text-xs text-muted-foreground mt-6">

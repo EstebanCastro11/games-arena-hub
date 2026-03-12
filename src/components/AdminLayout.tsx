@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Users, Trophy, Swords, CalendarClock,
-  Megaphone, DollarSign, ClipboardList, Menu, X, ChevronRight
+  Megaphone, DollarSign, ClipboardList, Menu, X, ChevronRight, LogOut
 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/admin" },

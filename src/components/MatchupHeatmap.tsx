@@ -53,7 +53,7 @@ export default function MatchupHeatmap({ matchups }: { matchups: Matchup[] }) {
     );
 
     return { teams, matrix, maxCount };
-  }, [matchups]);
+  }, [filtered]);
 
   if (teams.length === 0) return null;
 

@@ -69,8 +69,16 @@ export default function AdminUsers() {
   };
 
   const assignBase = async (userId: string, baseId: string) => {
-    // Remove from any other base first
-    await supabase.from("bases").update({ judge_user_id: null }).eq("judge_user_id", userId);
+    // Find which day the target base belongs to
+    const targetBase = bases.find((b: any) => b.id === baseId);
+    const targetDay = targetBase?.day;
+    
+    // Only remove from bases of the same day
+    const sameDayBases = bases.filter((b: any) => b.day === targetDay && b.judge_user_id === userId);
+    for (const b of sameDayBases) {
+      await supabase.from("bases").update({ judge_user_id: null }).eq("id", (b as any).id);
+    }
+    
     // Assign to new base
     const { error } = await supabase.from("bases").update({ judge_user_id: userId }).eq("id", baseId);
     if (error) {

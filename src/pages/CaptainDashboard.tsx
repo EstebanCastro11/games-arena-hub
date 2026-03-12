@@ -1,8 +1,9 @@
 import { motion } from "framer-motion";
-import { Trophy, LogOut, Swords, TrendingUp, DollarSign, CalendarClock, MapPin } from "lucide-react";
+import { Trophy, LogOut, TrendingUp, DollarSign, CalendarClock, MapPin } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useLeaderboard, useAllMatchupsWithDetails, useRotations } from "@/hooks/useGameData";
 import { Link, useNavigate } from "react-router-dom";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 export default function CaptainDashboard() {
   const { displayName, signOut } = useAuth();

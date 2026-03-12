@@ -82,6 +82,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           >
             ← Volver al Hub Público
           </Link>
+          <button
+            onClick={async () => { await signOut(); navigate("/login"); }}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-destructive hover:bg-destructive/10 transition-colors w-full mt-1"
+          >
+            <LogOut className="w-3 h-3" /> Cerrar Sesión
+          </button>
+          {displayName && (
+            <p className="text-[10px] text-muted-foreground px-3 mt-2 truncate">
+              {displayName}
+            </p>
+          )}
         </div>
       </aside>
 

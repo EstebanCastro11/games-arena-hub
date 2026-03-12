@@ -1,7 +1,11 @@
+import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { Trophy, Swords, TrendingUp, Zap, ChevronRight, Megaphone, DollarSign, Users } from "lucide-react";
+import { Trophy, Swords, TrendingUp, Zap, ChevronRight, Megaphone, DollarSign, Users, MapPin, Timer } from "lucide-react";
 import { useLeaderboard, useAnnouncements, useAllMatchupsWithDetails, useDashboardStats } from "@/hooks/useGameData";
+import { useRotationTimer, useCurrentRotation, formatTime } from "@/hooks/useRotationTimer";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 
 const container = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.08 } } };
 const item = { hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
@@ -11,9 +15,31 @@ export default function Hub() {
   const { data: announcements = [] } = useAnnouncements();
   const { data: allMatchups = [] } = useAllMatchupsWithDetails();
   const { data: stats } = useDashboardStats();
+  const timer = useRotationTimer();
+  const currentRotation = useCurrentRotation();
+  const queryClient = useQueryClient();
+
+  // Realtime for matchups
+  useEffect(() => {
+    const channel = supabase
+      .channel("hub-matchups")
+      .on("postgres_changes", { event: "*", schema: "public", table: "matchups" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["all-matchups"] });
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "match_results" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["all-matchups"] });
+        queryClient.invalidateQueries({ queryKey: ["leaderboard"] });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [queryClient]);
 
   const top3 = leaderboard.slice(0, 3);
-  const activeMatches = allMatchups.filter((m: any) => m.status === 'in_progress');
+
+  // Current rotation matchups (all 15)
+  const currentMatchups = currentRotation
+    ? allMatchups.filter((m: any) => m.rotation_id === currentRotation.id)
+    : [];
 
   return (
     <div className="min-h-screen bg-background">
@@ -64,7 +90,7 @@ export default function Hub() {
           <motion.div variants={item} className="text-center max-w-3xl mx-auto">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-card card-shadow text-xs text-muted-foreground mb-6">
               <div className="w-2 h-2 rounded-full bg-success live-pulse" />
-              DÍA 1 — EN VIVO
+              {currentRotation ? `DÍA ${currentRotation.day} — ROTACIÓN ${currentRotation.rotation_number}` : 'PRÓXIMAMENTE'}
             </div>
             <h1 className="font-display text-6xl md:text-8xl lg:text-9xl leading-none gradient-text mb-4">THE GAMES</h1>
             <p className="font-display text-2xl md:text-3xl text-muted-foreground tracking-wider mb-2">DÍAS EAFIT 2026</p>
@@ -80,6 +106,111 @@ export default function Hub() {
           </motion.div>
         </motion.div>
       </section>
+
+      {/* LIVE MATCHUPS — Full 15 bases */}
+      {currentRotation && (
+        <section className="max-w-7xl mx-auto px-4 py-12">
+          <motion.div variants={container} initial="hidden" whileInView="show" viewport={{ once: true }}>
+            {/* Rotation Header */}
+            <motion.div variants={item} className="bg-card card-shadow rounded-2xl p-6 md:p-8 mb-6 glow-primary">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-2 h-2 rounded-full bg-destructive live-pulse" />
+                  <div>
+                    <h2 className="font-display text-3xl md:text-5xl gradient-text">ROTACIÓN {currentRotation.rotation_number}</h2>
+                    <p className="text-sm text-muted-foreground">Día {currentRotation.day} — {currentMatchups.length} bases activas</p>
+                  </div>
+                </div>
+                {timer.isActive && (
+                  <div className="text-center">
+                    <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1">
+                      <Timer className="w-3 h-3" /> TIEMPO RESTANTE
+                    </div>
+                    <div className={`font-display text-5xl md:text-6xl tabular-nums ${
+                      timer.remainingSeconds <= 60 ? 'text-destructive' : 'gradient-text'
+                    }`}>
+                      {formatTime(timer.remainingSeconds)}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+
+            {/* All 15 matchups grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {currentMatchups
+                .sort((a: any, b: any) => (a.base?.order_index || 0) - (b.base?.order_index || 0))
+                .map((match: any) => {
+                  const resultData = Array.isArray(match.result) ? match.result[0] : match.result;
+                  const hasResult = !!resultData;
+
+                  return (
+                    <motion.div key={match.id} variants={item}
+                      className={`bg-card card-shadow rounded-xl p-5 transition-shadow ${
+                        hasResult ? 'border border-success/30' : 'hover:card-shadow-hover'
+                      }`}>
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <MapPin className="w-3 h-3 text-primary" />
+                          <span className="font-medium">{match.base?.name}</span>
+                          {match.base?.location && <span>— {match.base.location}</span>}
+                        </div>
+                        {match.base?.base_type === 'macro' && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-accent/20 text-accent font-medium">MACRO ★</span>
+                        )}
+                      </div>
+
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <div className="w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold shrink-0"
+                            style={{ backgroundColor: match.team_a?.color, color: '#fff' }}>{match.team_a?.number}</div>
+                          <div className="min-w-0">
+                            <span className="font-medium text-sm block truncate">{match.team_a?.name}</span>
+                          </div>
+                        </div>
+                        <span className="font-display text-xl text-muted-foreground shrink-0 mx-1">VS</span>
+                        <div className="flex items-center gap-2 flex-1 min-w-0 justify-end">
+                          <div className="min-w-0 text-right">
+                            <span className="font-medium text-sm block truncate">{match.team_b?.name}</span>
+                          </div>
+                          <div className="w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold shrink-0"
+                            style={{ backgroundColor: match.team_b?.color, color: '#fff' }}>{match.team_b?.number}</div>
+                        </div>
+                      </div>
+
+                      {hasResult && (
+                        <div className="mt-3 pt-3 border-t border-border text-center">
+                          <span className="text-sm text-success font-medium">
+                            {resultData.result === 'team_a' ? `🏆 ${match.team_a?.name}` :
+                             resultData.result === 'team_b' ? `🏆 ${match.team_b?.name}` : '🤝 Empate'}
+                          </span>
+                          <span className="text-xs text-muted-foreground ml-2">
+                            ({resultData.team_a_points} - {resultData.team_b_points})
+                          </span>
+                        </div>
+                      )}
+
+                      {!hasResult && match.status === 'in_progress' && (
+                        <div className="mt-3 pt-3 border-t border-border text-center">
+                          <span className="text-xs text-accent flex items-center justify-center gap-1">
+                            <Zap className="w-3 h-3" /> En juego...
+                          </span>
+                        </div>
+                      )}
+                    </motion.div>
+                  );
+                })}
+            </div>
+
+            {currentMatchups.length === 0 && (
+              <div className="text-center py-12 text-muted-foreground">
+                <Swords className="w-8 h-8 mx-auto mb-3 opacity-50" />
+                <p>No hay enfrentamientos en esta rotación aún.</p>
+              </div>
+            )}
+          </motion.div>
+        </section>
+      )}
 
       {/* Podium */}
       {top3.length >= 3 && (
@@ -107,44 +238,6 @@ export default function Hub() {
                   </motion.div>
                 );
               })}
-            </div>
-          </motion.div>
-        </section>
-      )}
-
-      {/* Live Matches */}
-      {activeMatches.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4 py-12">
-          <motion.div variants={container} initial="hidden" whileInView="show" viewport={{ once: true }}>
-            <motion.div variants={item} className="flex items-center gap-3 mb-6">
-              <div className="w-2 h-2 rounded-full bg-destructive live-pulse" />
-              <h2 className="font-display text-2xl md:text-3xl">ENFRENTAMIENTOS EN VIVO</h2>
-            </motion.div>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {activeMatches.slice(0, 6).map((match: any) => (
-                <motion.div key={match.id} variants={item} className="bg-card card-shadow rounded-xl p-5 hover:card-shadow-hover transition-shadow">
-                  <div className="text-xs text-muted-foreground mb-3 flex items-center gap-2">
-                    <Zap className="w-3 h-3 text-accent" />
-                    {match.base?.name} — {match.base?.location}
-                    {match.base?.base_type === 'macro' && <span className="text-[10px] px-1.5 py-0.5 rounded bg-accent/20 text-accent">MACRO</span>}
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold" style={{ backgroundColor: match.team_a?.color, color: '#fff' }}>
-                        {match.team_a?.number}
-                      </div>
-                      <span className="font-medium text-sm">{match.team_a?.name}</span>
-                    </div>
-                    <span className="font-display text-xl text-muted-foreground">VS</span>
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium text-sm">{match.team_b?.name}</span>
-                      <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold" style={{ backgroundColor: match.team_b?.color, color: '#fff' }}>
-                        {match.team_b?.number}
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
             </div>
           </motion.div>
         </section>

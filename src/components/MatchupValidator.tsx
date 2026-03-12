@@ -234,6 +234,9 @@ export default function MatchupValidator({ matchups }: { matchups: Matchup[] }) 
                 </div>
               )}
 
+              {/* Heatmap */}
+              <MatchupHeatmap matchups={matchups} />
+
               {/* All clear */}
               {isClean && (
                 <div className="text-center py-6">

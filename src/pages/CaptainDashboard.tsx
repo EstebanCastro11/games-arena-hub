@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Trophy, LogOut, TrendingUp, DollarSign, CalendarClock, MapPin, Timer } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useLeaderboard, useAllMatchupsWithDetails, useRotations } from "@/hooks/useGameData";
-import { useRotationTimer, useCurrentRotation, formatTime } from "@/hooks/useRotationTimer";
+import { useRotationTimer, useCurrentRotation, useForceReloadOnRotationChange, formatTime } from "@/hooks/useRotationTimer";
 import { Link, useNavigate } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";

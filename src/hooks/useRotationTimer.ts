@@ -118,37 +118,92 @@ export function useCurrentRotation() {
 }
 
 /**
- * Hook that forces a page reload when the rotation_timer changes (new rotation started).
- * Used on non-admin pages (Hub, Captain, Judge) so users always see the latest rotation.
- * Skips the very first event (initial load) to avoid reload on mount.
+ * Hook that forces a page reload when rotation changes.
+ * Primary sync: realtime INSERT on rotation_timer.
+ * Fallback: polling in case realtime events are missed.
  */
 export function useForceReloadOnRotationChange() {
-  const isFirstEvent = useRef(true);
+  const initialized = useRef(false);
+  const lastActiveTimerId = useRef<string | null>(null);
+
+  const getLatestActiveTimerId = useCallback(async () => {
+    const { data } = await supabase
+      .from("rotation_timer")
+      .select("id, created_at")
+      .eq("status", "active")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    return data?.id ?? null;
+  }, []);
 
   useEffect(() => {
+    let isMounted = true;
+    let pollIntervalMs = 3000;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+    const applyTimerId = async () => {
+      const activeId = await getLatestActiveTimerId();
+      if (!isMounted) return false;
+
+      if (!initialized.current) {
+        initialized.current = true;
+        lastActiveTimerId.current = activeId;
+        return false;
+      }
+
+      if (activeId && activeId !== lastActiveTimerId.current) {
+        lastActiveTimerId.current = activeId;
+        return true;
+      }
+
+      if (activeId) {
+        lastActiveTimerId.current = activeId;
+      }
+
+      return false;
+    };
+
+    const poll = async () => {
+      const changed = await applyTimerId();
+      if (!isMounted) return;
+
+      if (changed) {
+        window.location.reload();
+        return;
+      }
+
+      pollIntervalMs = Math.min(Math.round(pollIntervalMs * 1.5), 30000);
+      timeoutId = setTimeout(poll, pollIntervalMs);
+    };
+
     const channel = supabase
       .channel("force-reload-rotation")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "rotation_timer" }, () => {
-        if (isFirstEvent.current) {
-          isFirstEvent.current = false;
-          return;
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "rotation_timer" }, async () => {
+        const changed = await applyTimerId();
+        if (!isMounted) return;
+
+        pollIntervalMs = 3000;
+        if (changed) {
+          window.location.reload();
         }
-        // Force full page reload to get fresh data
-        window.location.reload();
       })
       .subscribe();
 
-    // After subscribing, mark first event as consumed after a short delay
-    // so that genuine INSERTs (not historical) trigger reload
-    const timeout = setTimeout(() => {
-      isFirstEvent.current = false;
-    }, 3000);
+    // Initial baseline + polling fallback
+    applyTimerId().finally(() => {
+      if (isMounted) {
+        timeoutId = setTimeout(poll, pollIntervalMs);
+      }
+    });
 
     return () => {
-      clearTimeout(timeout);
+      isMounted = false;
+      if (timeoutId) clearTimeout(timeoutId);
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [getLatestActiveTimerId]);
 }
 
 export function formatTime(seconds: number) {

@@ -1,26 +1,67 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Megaphone, Plus, Trash2, AlertTriangle, Info, Zap } from "lucide-react";
-import { demoAnnouncements, type Announcement } from "@/data/demo";
+import { Megaphone, Trash2, AlertTriangle, Info, Zap, Eye, EyeOff } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import AdminLayout from "@/components/AdminLayout";
 
 export default function AdminAnnouncements() {
-  const [announcements, setAnnouncements] = useState<Announcement[]>(demoAnnouncements);
   const [newMessage, setNewMessage] = useState("");
   const [newType, setNewType] = useState<"info" | "warning" | "urgent">("info");
+  const queryClient = useQueryClient();
 
-  const addAnnouncement = () => {
-    if (!newMessage.trim()) return;
-    const ann: Announcement = {
-      id: Date.now(),
-      message: newMessage,
-      type: newType,
-      timestamp: new Date().toISOString(),
-      active: true,
-    };
-    setAnnouncements([ann, ...announcements]);
-    setNewMessage("");
-  };
+  const { data: announcements = [] } = useQuery({
+    queryKey: ["admin-announcements"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("announcements")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const addMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from("announcements").insert({
+        message: newMessage.trim(),
+        type: newType,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-announcements"] });
+      queryClient.invalidateQueries({ queryKey: ["announcements"] });
+      setNewMessage("");
+      toast.success("Anuncio publicado");
+    },
+    onError: () => toast.error("Error al publicar"),
+  });
+
+  const toggleMutation = useMutation({
+    mutationFn: async ({ id, active }: { id: string; active: boolean }) => {
+      const { error } = await supabase.from("announcements").update({ active }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-announcements"] });
+      queryClient.invalidateQueries({ queryKey: ["announcements"] });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("announcements").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-announcements"] });
+      queryClient.invalidateQueries({ queryKey: ["announcements"] });
+      toast.success("Anuncio eliminado");
+    },
+  });
 
   return (
     <AdminLayout>
@@ -62,8 +103,8 @@ export default function AdminAnnouncements() {
                 ))}
               </div>
               <button
-                onClick={addAnnouncement}
-                disabled={!newMessage.trim()}
+                onClick={() => addMutation.mutate()}
+                disabled={!newMessage.trim() || addMutation.isPending}
                 className="gradient-primary px-4 py-2 rounded-lg text-sm font-medium text-primary-foreground hover:scale-105 active:scale-95 transition-transform disabled:opacity-50 flex items-center gap-1"
               >
                 <Megaphone className="w-3 h-3" /> Publicar
@@ -74,7 +115,7 @@ export default function AdminAnnouncements() {
 
         {/* Existing */}
         <div className="space-y-3">
-          {announcements.map((a, idx) => (
+          {announcements.map((a: any, idx: number) => (
             <motion.div
               key={a.id}
               initial={{ opacity: 0, x: -10 }}
@@ -90,17 +131,20 @@ export default function AdminAnnouncements() {
                 <p className="text-sm">{a.message}</p>
                 <div className="flex items-center gap-2 mt-2">
                   <span className="text-[10px] text-muted-foreground">
-                    {new Date(a.timestamp).toLocaleString('es-CO', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' })}
+                    {new Date(a.created_at).toLocaleString('es-CO', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' })}
                   </span>
-                  <span className={`text-[10px] px-1.5 py-0.5 rounded ${
-                    a.active ? 'bg-success/20 text-success' : 'bg-secondary text-muted-foreground'
-                  }`}>
-                    {a.active ? 'Activo' : 'Oculto'}
-                  </span>
+                  <button
+                    onClick={() => toggleMutation.mutate({ id: a.id, active: !a.active })}
+                    className={`text-[10px] px-1.5 py-0.5 rounded flex items-center gap-1 cursor-pointer hover:opacity-80 ${
+                      a.active ? 'bg-success/20 text-success' : 'bg-secondary text-muted-foreground'
+                    }`}
+                  >
+                    {a.active ? <><Eye className="w-3 h-3" /> Activo</> : <><EyeOff className="w-3 h-3" /> Oculto</>}
+                  </button>
                 </div>
               </div>
               <button
-                onClick={() => setAnnouncements(announcements.filter(x => x.id !== a.id))}
+                onClick={() => deleteMutation.mutate(a.id)}
                 className="text-muted-foreground hover:text-destructive transition-colors p-1"
               >
                 <Trash2 className="w-4 h-4" />

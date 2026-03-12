@@ -31,6 +31,9 @@ export default function Hub() {
         queryClient.invalidateQueries({ queryKey: ["all-matchups"] });
         queryClient.invalidateQueries({ queryKey: ["leaderboard"] });
       })
+      .on("postgres_changes", { event: "*", schema: "public", table: "announcements" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["announcements"] });
+      })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [queryClient]);

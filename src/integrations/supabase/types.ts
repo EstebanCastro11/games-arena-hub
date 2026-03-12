@@ -303,6 +303,44 @@ export type Database = {
         }
         Relationships: []
       }
+      rotation_timer: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          duration_seconds: number
+          id: string
+          rotation_id: string | null
+          started_at: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          duration_seconds?: number
+          id?: string
+          rotation_id?: string | null
+          started_at?: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          duration_seconds?: number
+          id?: string
+          rotation_id?: string | null
+          started_at?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rotation_timer_rotation_id_fkey"
+            columns: ["rotation_id"]
+            isOneToOne: false
+            referencedRelation: "rotations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rotations: {
         Row: {
           created_at: string

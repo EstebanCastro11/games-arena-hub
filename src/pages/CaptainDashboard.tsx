@@ -1,8 +1,9 @@
 import { motion } from "framer-motion";
-import { Trophy, LogOut, Swords, TrendingUp, DollarSign, CalendarClock, MapPin } from "lucide-react";
+import { Trophy, LogOut, TrendingUp, DollarSign, CalendarClock, MapPin } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useLeaderboard, useAllMatchupsWithDetails, useRotations } from "@/hooks/useGameData";
 import { Link, useNavigate } from "react-router-dom";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 export default function CaptainDashboard() {
   const { displayName, signOut } = useAuth();
@@ -100,52 +101,84 @@ export default function CaptainDashboard() {
           </div>
         </motion.div>
 
-        {/* Team Journey */}
+        {/* Team Journey - All rotations by day */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
           className="bg-card card-shadow rounded-xl p-5 mb-6">
           <h3 className="font-display text-lg mb-4 flex items-center gap-2">
             <CalendarClock className="w-4 h-4 text-primary" /> TU RECORRIDO
           </h3>
-          <div className="space-y-3">
-            {myMatchups.map((match: any) => {
-              const isTeamA = match.team_a?.id === myTeam.id;
-              const opponent = isTeamA ? match.team_b : match.team_a;
-              const hasResult = match.result && match.result.length > 0;
-              const myPoints = hasResult ? (isTeamA ? match.result[0].team_a_points : match.result[0].team_b_points) : null;
+          <Tabs defaultValue="1">
+            <TabsList className="w-full mb-4">
+              <TabsTrigger value="1" className="flex-1">Día 1</TabsTrigger>
+              <TabsTrigger value="2" className="flex-1">Día 2</TabsTrigger>
+            </TabsList>
+            {[1, 2].map(day => {
+              const dayRotations = rotations
+                .filter(r => r.day === day)
+                .sort((a, b) => a.rotation_number - b.rotation_number);
 
               return (
-                <div key={match.id} className="bg-secondary/30 rounded-lg p-3 flex items-center gap-3">
-                  <div className={`w-2 h-2 rounded-full shrink-0 ${
-                    match.status === 'completed' ? 'bg-success' : match.status === 'in_progress' ? 'bg-accent live-pulse' : 'bg-muted-foreground'
-                  }`} />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 text-sm">
-                      <span className="font-medium">vs</span>
-                      <div className="w-6 h-6 rounded flex items-center justify-center text-[10px] font-bold"
-                        style={{ backgroundColor: opponent?.color, color: '#fff' }}>{opponent?.number}</div>
-                      <span className="font-medium truncate">{opponent?.name}</span>
-                    </div>
-                    <div className="flex items-center gap-1 text-[10px] text-muted-foreground mt-0.5">
-                      <MapPin className="w-3 h-3" />
-                      D{match.rotation?.day} R{match.rotation?.rotation_number} — {match.base?.name}
-                    </div>
-                  </div>
-                  {hasResult ? (
-                    <div className="text-right shrink-0">
-                      <span className="font-display text-lg tabular-nums gradient-text">+{myPoints?.toLocaleString()}</span>
-                    </div>
-                  ) : (
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full shrink-0 ${
-                      match.status === 'in_progress' ? 'bg-accent/20 text-accent' : 'bg-secondary text-muted-foreground'
-                    }`}>
-                      {match.status === 'in_progress' ? 'En Vivo' : 'Pendiente'}
-                    </span>
+                <TabsContent key={day} value={String(day)} className="space-y-3">
+                  {dayRotations.length === 0 && (
+                    <p className="text-sm text-muted-foreground">No hay rotaciones para el Día {day}.</p>
                   )}
-                </div>
+                  {dayRotations.map(rotation => {
+                    const match = myMatchups.find((m: any) => m.rotation_id === rotation.id);
+                    if (!match) {
+                      return (
+                        <div key={rotation.id} className="bg-secondary/30 rounded-lg p-3 flex items-center gap-3">
+                          <div className="w-2 h-2 rounded-full shrink-0 bg-muted-foreground" />
+                          <div className="flex-1">
+                            <span className="text-sm font-medium">Rotación {rotation.rotation_number}</span>
+                            <p className="text-[10px] text-muted-foreground">Sin asignación</p>
+                          </div>
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-secondary text-muted-foreground">—</span>
+                        </div>
+                      );
+                    }
+
+                    const isTeamA = match.team_a?.id === myTeam.id;
+                    const opponent = isTeamA ? match.team_b : match.team_a;
+                    const resultData = Array.isArray(match.result) ? match.result[0] : match.result;
+                    const hasResult = !!resultData;
+                    const myPoints = hasResult ? (isTeamA ? resultData.team_a_points : resultData.team_b_points) : null;
+
+                    return (
+                      <div key={match.id} className="bg-secondary/30 rounded-lg p-3 flex items-center gap-3">
+                        <div className={`w-2 h-2 rounded-full shrink-0 ${
+                          match.status === 'completed' ? 'bg-success' : match.status === 'in_progress' ? 'bg-accent live-pulse' : 'bg-muted-foreground'
+                        }`} />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 text-sm">
+                            <span className="text-muted-foreground text-[10px] font-mono">R{rotation.rotation_number}</span>
+                            <span className="font-medium">vs</span>
+                            <div className="w-6 h-6 rounded flex items-center justify-center text-[10px] font-bold"
+                              style={{ backgroundColor: opponent?.color, color: '#fff' }}>{opponent?.number}</div>
+                            <span className="font-medium truncate">{opponent?.name}</span>
+                          </div>
+                          <div className="flex items-center gap-1 text-[10px] text-muted-foreground mt-0.5">
+                            <MapPin className="w-3 h-3" />
+                            {match.base?.name} {match.base?.location ? `— ${match.base.location}` : ''}
+                          </div>
+                        </div>
+                        {hasResult ? (
+                          <div className="text-right shrink-0">
+                            <span className="font-display text-lg tabular-nums gradient-text">+{myPoints?.toLocaleString()}</span>
+                          </div>
+                        ) : (
+                          <span className={`text-[10px] px-2 py-0.5 rounded-full shrink-0 ${
+                            match.status === 'in_progress' ? 'bg-accent/20 text-accent' : 'bg-secondary text-muted-foreground'
+                          }`}>
+                            {match.status === 'in_progress' ? 'En Vivo' : 'Pendiente'}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </TabsContent>
               );
             })}
-            {myMatchups.length === 0 && <p className="text-sm text-muted-foreground">No hay enfrentamientos asignados aún.</p>}
-          </div>
+          </Tabs>
         </motion.div>
 
         {/* Betting */}

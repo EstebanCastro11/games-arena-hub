@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Users, Trophy, Swords, CalendarClock,
-  Megaphone, DollarSign, ClipboardList, Menu, X, ChevronRight
+  Megaphone, DollarSign, ClipboardList, Menu, X, ChevronRight, LogOut
 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/admin" },
@@ -19,6 +20,8 @@ const navItems = [
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
+  const { displayName, signOut } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -79,6 +82,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           >
             ← Volver al Hub Público
           </Link>
+          <button
+            onClick={async () => { await signOut(); navigate("/login"); }}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-destructive hover:bg-destructive/10 transition-colors w-full mt-1"
+          >
+            <LogOut className="w-3 h-3" /> Cerrar Sesión
+          </button>
+          {displayName && (
+            <p className="text-[10px] text-muted-foreground px-3 mt-2 truncate">
+              {displayName}
+            </p>
+          )}
         </div>
       </aside>
 

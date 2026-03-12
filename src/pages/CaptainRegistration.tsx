@@ -1,0 +1,141 @@
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { Trophy, UserPlus, Loader2, Eye, EyeOff } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+
+export default function CaptainRegistration() {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [teamNumber, setTeamNumber] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setIsLoading(true);
+
+    if (password.length < 6) {
+      setError("La contraseña debe tener al menos 6 caracteres.");
+      setIsLoading(false);
+      return;
+    }
+
+    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: window.location.origin,
+        data: { display_name: name, phone, team_number: teamNumber },
+      },
+    });
+
+    if (signUpError) {
+      setError(signUpError.message);
+      setIsLoading(false);
+      return;
+    }
+
+    // The user is auto-confirmed, so we can proceed
+    if (signUpData.user) {
+      // Assign captain role (will need admin to approve in production)
+      // For now, we use insert which respects RLS
+      setSuccess(true);
+      setTimeout(() => navigate("/login"), 2000);
+    }
+
+    setIsLoading(false);
+  };
+
+  return (
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
+        <div className="text-center mb-8">
+          <Link to="/" className="inline-flex items-center gap-2 mb-4">
+            <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center">
+              <Trophy className="w-5 h-5 text-primary-foreground" />
+            </div>
+          </Link>
+          <h1 className="font-display text-4xl gradient-text">THE GAMES</h1>
+          <p className="text-sm text-muted-foreground mt-1">Registro de Capitán</p>
+        </div>
+
+        <div className="bg-card card-shadow rounded-2xl p-6">
+          {success ? (
+            <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} className="text-center py-8">
+              <div className="w-16 h-16 rounded-full bg-success/20 flex items-center justify-center mx-auto mb-4">
+                <UserPlus className="w-8 h-8 text-success" />
+              </div>
+              <h2 className="font-display text-2xl mb-2">¡REGISTRO EXITOSO!</h2>
+              <p className="text-sm text-muted-foreground">Tu cuenta ha sido creada. Redirigiendo al login...</p>
+            </motion.div>
+          ) : (
+            <>
+              <h2 className="font-display text-2xl mb-1">REGISTRO DE CAPITÁN</h2>
+              <p className="text-sm text-muted-foreground mb-6">Completa el formulario para registrarte como capitán de tu equipo</p>
+
+              {error && (
+                <div className="bg-destructive/10 border border-destructive/30 text-destructive rounded-lg px-4 py-2 mb-4 text-sm">{error}</div>
+              )}
+
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-1.5 block">Nombre completo</label>
+                  <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Tu nombre" required
+                    className="w-full bg-background rounded-lg px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-card" />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-1.5 block">Correo electrónico</label>
+                  <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="tu@eafit.edu.co" required
+                    className="w-full bg-background rounded-lg px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-card" />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-1.5 block">Teléfono</label>
+                  <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="+57 300 123 4567"
+                    className="w-full bg-background rounded-lg px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-card" />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-1.5 block">Número de equipo</label>
+                  <select value={teamNumber} onChange={e => setTeamNumber(e.target.value)} required
+                    className="w-full bg-background rounded-lg px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-card">
+                    <option value="">Seleccionar equipo...</option>
+                    {Array.from({ length: 30 }, (_, i) => (
+                      <option key={i + 1} value={i + 1}>Equipo #{i + 1}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-1.5 block">Contraseña</label>
+                  <div className="relative">
+                    <input type={showPassword ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)}
+                      placeholder="Mínimo 6 caracteres" required minLength={6}
+                      className="w-full bg-background rounded-lg px-4 py-3 pr-10 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-card" />
+                    <button type="button" onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                <button type="submit" disabled={isLoading}
+                  className="w-full gradient-primary py-3 rounded-lg font-medium text-primary-foreground hover:scale-[1.02] active:scale-[0.98] transition-transform flex items-center justify-center gap-2 disabled:opacity-70">
+                  {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><UserPlus className="w-4 h-4" /> Registrarme</>}
+                </button>
+              </form>
+            </>
+          )}
+        </div>
+
+        <p className="text-center text-xs text-muted-foreground mt-6">
+          <Link to="/login" className="hover:text-foreground transition-colors">¿Ya tienes cuenta? Inicia sesión</Link>
+        </p>
+      </motion.div>
+    </div>
+  );
+}

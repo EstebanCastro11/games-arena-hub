@@ -1,22 +1,19 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Trophy, Swords, TrendingUp, Zap, ChevronRight, Megaphone, DollarSign, Users } from "lucide-react";
-import { leaderboard, demoAnnouncements, demoMatchups, demoTeams } from "@/data/demo";
+import { useLeaderboard, useAnnouncements, useAllMatchupsWithDetails, useDashboardStats } from "@/hooks/useGameData";
 
-const container = {
-  hidden: { opacity: 0 },
-  show: { opacity: 1, transition: { staggerChildren: 0.08 } },
-};
-
-const item = {
-  hidden: { opacity: 0, y: 10 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.4 } },
-};
+const container = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.08 } } };
+const item = { hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 
 export default function Hub() {
+  const { data: leaderboard = [] } = useLeaderboard();
+  const { data: announcements = [] } = useAnnouncements();
+  const { data: allMatchups = [] } = useAllMatchupsWithDetails();
+  const { data: stats } = useDashboardStats();
+
   const top3 = leaderboard.slice(0, 3);
-  const activeMatches = demoMatchups.filter(m => m.status === 'in_progress');
-  const activeAnnouncements = demoAnnouncements.filter(a => a.active);
+  const activeMatches = allMatchups.filter((m: any) => m.status === 'in_progress');
 
   return (
     <div className="min-h-screen bg-background">
@@ -43,7 +40,7 @@ export default function Hub() {
       </header>
 
       {/* Announcement Banner */}
-      {activeAnnouncements.length > 0 && (
+      {announcements.length > 0 && (
         <div className="gradient-primary py-2">
           <div className="max-w-7xl mx-auto px-4 flex items-center gap-2 overflow-hidden">
             <Megaphone className="w-4 h-4 text-primary-foreground shrink-0" />
@@ -53,7 +50,7 @@ export default function Hub() {
                 transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
                 className="text-sm font-medium text-primary-foreground inline-block"
               >
-                {activeAnnouncements.map(a => a.message).join("   •   ")}
+                {announcements.map((a: any) => a.message).join("   •   ")}
               </motion.div>
             </div>
           </div>
@@ -63,37 +60,20 @@ export default function Hub() {
       {/* Hero */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/10 via-transparent to-transparent" />
-        <motion.div
-          variants={container}
-          initial="hidden"
-          animate="show"
-          className="max-w-7xl mx-auto px-4 py-16 md:py-24 relative z-10"
-        >
+        <motion.div variants={container} initial="hidden" animate="show" className="max-w-7xl mx-auto px-4 py-16 md:py-24 relative z-10">
           <motion.div variants={item} className="text-center max-w-3xl mx-auto">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-card card-shadow text-xs text-muted-foreground mb-6">
               <div className="w-2 h-2 rounded-full bg-success live-pulse" />
               DÍA 1 — EN VIVO
             </div>
-            <h1 className="font-display text-6xl md:text-8xl lg:text-9xl leading-none gradient-text mb-4">
-              THE GAMES
-            </h1>
-            <p className="font-display text-2xl md:text-3xl text-muted-foreground tracking-wider mb-2">
-              DÍAS EAFIT 2026
-            </p>
-            <p className="text-muted-foreground max-w-md mx-auto mb-8">
-              30 equipos. 30 competencias. 2 días de batalla. ¿Quién se llevará la gloria?
-            </p>
+            <h1 className="font-display text-6xl md:text-8xl lg:text-9xl leading-none gradient-text mb-4">THE GAMES</h1>
+            <p className="font-display text-2xl md:text-3xl text-muted-foreground tracking-wider mb-2">DÍAS EAFIT 2026</p>
+            <p className="text-muted-foreground max-w-md mx-auto mb-8">30 equipos. 30 bases. 2 días de batalla. ¿Quién se llevará la gloria?</p>
             <div className="flex items-center justify-center gap-4">
-              <Link
-                to="/leaderboard"
-                className="gradient-primary px-6 py-3 rounded-lg font-medium text-primary-foreground hover:scale-105 active:scale-95 transition-transform flex items-center gap-2"
-              >
+              <Link to="/leaderboard" className="gradient-primary px-6 py-3 rounded-lg font-medium text-primary-foreground hover:scale-105 active:scale-95 transition-transform flex items-center gap-2">
                 <TrendingUp className="w-4 h-4" /> Ver Clasificación
               </Link>
-              <Link
-                to="/apuestas"
-                className="bg-card card-shadow px-6 py-3 rounded-lg font-medium text-foreground hover:card-shadow-hover transition-shadow flex items-center gap-2"
-              >
+              <Link to="/apuestas" className="bg-card card-shadow px-6 py-3 rounded-lg font-medium text-foreground hover:card-shadow-hover transition-shadow flex items-center gap-2">
                 <DollarSign className="w-4 h-4" /> Apuestas
               </Link>
             </div>
@@ -102,39 +82,35 @@ export default function Hub() {
       </section>
 
       {/* Podium */}
-      <section className="max-w-7xl mx-auto px-4 py-12">
-        <motion.div variants={container} initial="hidden" whileInView="show" viewport={{ once: true }}>
-          <motion.h2 variants={item} className="font-display text-3xl md:text-4xl text-center mb-8 gradient-text">
-            🏆 TOP 3
-          </motion.h2>
-          <div className="grid grid-cols-3 gap-3 md:gap-6 max-w-2xl mx-auto items-end">
-            {[top3[1], top3[0], top3[2]].map((team, idx) => {
-              const podiumOrder = [2, 1, 3];
-              const heights = ["h-32 md:h-40", "h-40 md:h-52", "h-24 md:h-32"];
-              return (
-                <motion.div key={team.id} variants={item} className="text-center">
-                  <div
-                    className={`${heights[idx]} rounded-t-xl flex flex-col items-center justify-end pb-4 relative overflow-hidden`}
-                    style={{ background: `linear-gradient(to top, ${team.color}40, ${team.color}15)` }}
-                  >
-                    <div
-                      className="w-10 h-10 md:w-14 md:h-14 rounded-xl flex items-center justify-center text-lg md:text-xl font-bold mb-2 border-2"
-                      style={{ backgroundColor: team.color, borderColor: `${team.color}80`, color: '#fff' }}
-                    >
-                      {team.number}
+      {top3.length >= 3 && (
+        <section className="max-w-7xl mx-auto px-4 py-12">
+          <motion.div variants={container} initial="hidden" whileInView="show" viewport={{ once: true }}>
+            <motion.h2 variants={item} className="font-display text-3xl md:text-4xl text-center mb-8 gradient-text">🏆 TOP 3</motion.h2>
+            <div className="grid grid-cols-3 gap-3 md:gap-6 max-w-2xl mx-auto items-end">
+              {[top3[1], top3[0], top3[2]].map((team, idx) => {
+                const podiumOrder = [2, 1, 3];
+                const heights = ["h-32 md:h-40", "h-40 md:h-52", "h-24 md:h-32"];
+                return (
+                  <motion.div key={team.id} variants={item} className="text-center">
+                    <div className={`${heights[idx]} rounded-t-xl flex flex-col items-center justify-end pb-4 relative overflow-hidden`}
+                      style={{ background: `linear-gradient(to top, ${team.color}40, ${team.color}15)` }}>
+                      <div className="w-10 h-10 md:w-14 md:h-14 rounded-xl flex items-center justify-center text-lg md:text-xl font-bold mb-2 border-2"
+                        style={{ backgroundColor: team.color, borderColor: `${team.color}80`, color: '#fff' }}>
+                        {team.number}
+                      </div>
+                      <span className="font-display text-lg md:text-2xl">{team.name}</span>
+                      <span className="text-xs text-muted-foreground tabular-nums">{team.total_points.toLocaleString()} pts</span>
                     </div>
-                    <span className="font-display text-lg md:text-2xl">{team.name}</span>
-                    <span className="text-xs text-muted-foreground tabular-nums">{team.totalPoints.toLocaleString()} pts</span>
-                  </div>
-                  <div className="bg-card card-shadow rounded-b-xl py-2">
-                    <span className="font-display text-2xl md:text-3xl gradient-text">#{podiumOrder[idx]}</span>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
-        </motion.div>
-      </section>
+                    <div className="bg-card card-shadow rounded-b-xl py-2">
+                      <span className="font-display text-2xl md:text-3xl gradient-text">#{podiumOrder[idx]}</span>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </motion.div>
+        </section>
+      )}
 
       {/* Live Matches */}
       {activeMatches.length > 0 && (
@@ -145,28 +121,25 @@ export default function Hub() {
               <h2 className="font-display text-2xl md:text-3xl">ENFRENTAMIENTOS EN VIVO</h2>
             </motion.div>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {activeMatches.map((match) => (
-                <motion.div
-                  key={match.id}
-                  variants={item}
-                  className="bg-card card-shadow rounded-xl p-5 hover:card-shadow-hover transition-shadow"
-                >
+              {activeMatches.slice(0, 6).map((match: any) => (
+                <motion.div key={match.id} variants={item} className="bg-card card-shadow rounded-xl p-5 hover:card-shadow-hover transition-shadow">
                   <div className="text-xs text-muted-foreground mb-3 flex items-center gap-2">
                     <Zap className="w-3 h-3 text-accent" />
-                    {match.competition.title} — {match.competition.location}
+                    {match.base?.name} — {match.base?.location}
+                    {match.base?.base_type === 'macro' && <span className="text-[10px] px-1.5 py-0.5 rounded bg-accent/20 text-accent">MACRO</span>}
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold" style={{ backgroundColor: match.teamA.color, color: '#fff' }}>
-                        {match.teamA.number}
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold" style={{ backgroundColor: match.team_a?.color, color: '#fff' }}>
+                        {match.team_a?.number}
                       </div>
-                      <span className="font-medium text-sm">{match.teamA.name}</span>
+                      <span className="font-medium text-sm">{match.team_a?.name}</span>
                     </div>
                     <span className="font-display text-xl text-muted-foreground">VS</span>
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-sm">{match.teamB.name}</span>
-                      <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold" style={{ backgroundColor: match.teamB.color, color: '#fff' }}>
-                        {match.teamB.number}
+                      <span className="font-medium text-sm">{match.team_b?.name}</span>
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold" style={{ backgroundColor: match.team_b?.color, color: '#fff' }}>
+                        {match.team_b?.number}
                       </div>
                     </div>
                   </div>
@@ -179,24 +152,14 @@ export default function Hub() {
 
       {/* Quick Stats */}
       <section className="max-w-7xl mx-auto px-4 py-12">
-        <motion.div
-          variants={container}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true }}
-          className="grid grid-cols-2 md:grid-cols-4 gap-4"
-        >
+        <motion.div variants={container} initial="hidden" whileInView="show" viewport={{ once: true }} className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            { icon: Users, label: "Equipos", value: "30" },
-            { icon: Swords, label: "Competencias", value: "30" },
-            { icon: Trophy, label: "Partidos Jugados", value: demoMatchups.filter(m => m.status === 'completed').length.toString() },
-            { icon: DollarSign, label: "Apuestas Activas", value: "47" },
+            { icon: Users, label: "Equipos", value: stats?.totalTeams || 30 },
+            { icon: Swords, label: "Bases", value: stats?.totalBases || 30 },
+            { icon: Trophy, label: "Partidos Jugados", value: stats?.completedMatchups || 0 },
+            { icon: DollarSign, label: "Apuestas", value: stats?.totalBets || 0 },
           ].map((stat) => (
-            <motion.div
-              key={stat.label}
-              variants={item}
-              className="bg-card card-shadow rounded-xl p-5 text-center"
-            >
+            <motion.div key={stat.label} variants={item} className="bg-card card-shadow rounded-xl p-5 text-center">
               <stat.icon className="w-5 h-5 text-primary mx-auto mb-2" />
               <div className="font-display text-3xl tabular-nums">{stat.value}</div>
               <div className="text-xs text-muted-foreground mt-1">{stat.label}</div>
@@ -216,29 +179,18 @@ export default function Hub() {
           </motion.div>
           <div className="space-y-2">
             {leaderboard.slice(0, 10).map((team, idx) => (
-              <motion.div
-                key={team.id}
-                variants={item}
-                className="bg-card card-shadow rounded-xl px-4 py-3 flex items-center gap-4 hover:card-shadow-hover transition-shadow"
-              >
-                <span className="font-display text-xl w-8 text-center tabular-nums text-muted-foreground">
-                  {idx + 1}
-                </span>
-                <div
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold shrink-0"
-                  style={{ backgroundColor: team.color, color: '#fff' }}
-                >
+              <motion.div key={team.id} variants={item} className="bg-card card-shadow rounded-xl px-4 py-3 flex items-center gap-4 hover:card-shadow-hover transition-shadow">
+                <span className="font-display text-xl w-8 text-center tabular-nums text-muted-foreground">{idx + 1}</span>
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold shrink-0" style={{ backgroundColor: team.color, color: '#fff' }}>
                   {team.number}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-medium text-sm truncate">{team.name}</div>
-                  <div className="text-xs text-muted-foreground">{team.captain}</div>
+                  <div className="text-xs text-muted-foreground">{team.faculty}</div>
                 </div>
                 <div className="text-right">
-                  <div className="font-display text-lg tabular-nums">{team.totalPoints.toLocaleString()}</div>
-                  <div className="text-[10px] text-muted-foreground tabular-nums">
-                    {team.wins}W {team.draws}D {team.losses}L
-                  </div>
+                  <div className="font-display text-lg tabular-nums">{team.total_points.toLocaleString()}</div>
+                  <div className="text-[10px] text-muted-foreground tabular-nums">{team.wins}W {team.draws}D {team.losses}L</div>
                 </div>
               </motion.div>
             ))}

@@ -1,13 +1,31 @@
 import { motion } from "framer-motion";
-import { Trophy, Users as UsersIcon, Calendar, LogOut, Swords } from "lucide-react";
+import { Trophy, LogOut, Swords, TrendingUp, DollarSign, CalendarClock, MapPin } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { leaderboard, demoMatchups } from "@/data/demo";
-import { Link } from "react-router-dom";
+import { useLeaderboard, useAllMatchupsWithDetails, useRotations } from "@/hooks/useGameData";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function CaptainDashboard() {
   const { displayName, signOut } = useAuth();
-  const myTeam = leaderboard[5]; // Simulated team assignment
-  const upcomingMatches = demoMatchups.filter(m => m.status === 'pending').slice(0, 3);
+  const navigate = useNavigate();
+  const { data: leaderboard = [] } = useLeaderboard();
+  const { data: allMatchups = [] } = useAllMatchupsWithDetails();
+  const { data: rotations = [] } = useRotations();
+
+  // Simulate team assignment (first team for demo)
+  const myTeam = leaderboard[5] || leaderboard[0];
+  const myRank = myTeam ? leaderboard.findIndex(t => t.id === myTeam.id) + 1 : 0;
+
+  // Find matchups for this team
+  const myMatchups = allMatchups.filter((m: any) =>
+    m.team_a?.id === myTeam?.id || m.team_b?.id === myTeam?.id
+  );
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/login");
+  };
+
+  if (!myTeam) return <div className="min-h-screen bg-background flex items-center justify-center text-muted-foreground">Cargando...</div>;
 
   return (
     <div className="min-h-screen bg-background">
@@ -25,7 +43,7 @@ export default function CaptainDashboard() {
           <div className="flex items-center gap-3">
             <Link to="/" className="text-xs text-muted-foreground hover:text-foreground">Hub</Link>
             <Link to="/leaderboard" className="text-xs text-muted-foreground hover:text-foreground">Clasificación</Link>
-            <button onClick={signOut} className="p-2 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors">
+            <button onClick={handleSignOut} className="p-2 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors">
               <LogOut className="w-4 h-4" />
             </button>
           </div>
@@ -39,27 +57,19 @@ export default function CaptainDashboard() {
         </motion.div>
 
         {/* Team Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="bg-card card-shadow rounded-2xl p-6 mb-6 glow-primary"
-        >
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+          className="bg-card card-shadow rounded-2xl p-6 mb-6 glow-primary">
           <div className="flex items-center gap-4 mb-4">
-            <div
-              className="w-16 h-16 rounded-xl flex items-center justify-center text-2xl font-bold border-2"
-              style={{ backgroundColor: myTeam.color, borderColor: `${myTeam.color}80`, color: '#fff' }}
-            >
-              {myTeam.number}
-            </div>
+            <div className="w-16 h-16 rounded-xl flex items-center justify-center text-2xl font-bold border-2"
+              style={{ backgroundColor: myTeam.color, borderColor: `${myTeam.color}80`, color: '#fff' }}>{myTeam.number}</div>
             <div>
               <h2 className="font-display text-3xl">{myTeam.name}</h2>
-              <p className="text-sm text-muted-foreground">{myTeam.faculty} • {myTeam.membersCount} miembros</p>
+              <p className="text-sm text-muted-foreground">{myTeam.faculty || 'Sin facultad'} • {myTeam.members_count} miembros</p>
             </div>
           </div>
           <div className="grid grid-cols-4 gap-3">
             {[
-              { label: "Puntos", value: myTeam.totalPoints.toLocaleString() },
+              { label: "Puntos", value: myTeam.total_points.toLocaleString() },
               { label: "Victorias", value: myTeam.wins },
               { label: "Empates", value: myTeam.draws },
               { label: "Derrotas", value: myTeam.losses },
@@ -73,75 +83,80 @@ export default function CaptainDashboard() {
         </motion.div>
 
         {/* Rank */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
-          className="bg-card card-shadow rounded-xl p-5 mb-6"
-        >
-          <h3 className="font-display text-lg mb-3">TU POSICIÓN EN LA CLASIFICACIÓN</h3>
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
+          className="bg-card card-shadow rounded-xl p-5 mb-6">
+          <h3 className="font-display text-lg mb-3 flex items-center gap-2"><TrendingUp className="w-4 h-4 text-primary" /> TU POSICIÓN</h3>
           <div className="flex items-center gap-4">
-            <span className="font-display text-5xl gradient-text">#{leaderboard.findIndex(t => t.id === myTeam.id) + 1}</span>
+            <span className="font-display text-5xl gradient-text">#{myRank}</span>
             <div className="flex-1">
               <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                <div
-                  className="h-full gradient-primary rounded-full"
-                  style={{ width: `${(myTeam.totalPoints / leaderboard[0].totalPoints) * 100}%` }}
-                />
+                <div className="h-full gradient-primary rounded-full"
+                  style={{ width: `${(myTeam.total_points / Math.max(leaderboard[0]?.total_points || 1, 1)) * 100}%` }} />
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                {myTeam.totalPoints.toLocaleString()} / {leaderboard[0].totalPoints.toLocaleString()} pts del líder
+                {myTeam.total_points.toLocaleString()} / {(leaderboard[0]?.total_points || 0).toLocaleString()} pts del líder
               </p>
             </div>
           </div>
         </motion.div>
 
-        {/* Upcoming Matches */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="bg-card card-shadow rounded-xl p-5 mb-6"
-        >
+        {/* Team Journey */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+          className="bg-card card-shadow rounded-xl p-5 mb-6">
           <h3 className="font-display text-lg mb-4 flex items-center gap-2">
-            <Swords className="w-4 h-4 text-primary" /> PRÓXIMOS ENFRENTAMIENTOS
+            <CalendarClock className="w-4 h-4 text-primary" /> TU RECORRIDO
           </h3>
           <div className="space-y-3">
-            {upcomingMatches.map(match => (
-              <div key={match.id} className="bg-secondary/30 rounded-lg p-3 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded flex items-center justify-center text-[10px] font-bold" style={{ backgroundColor: match.teamA.color, color: '#fff' }}>
-                    {match.teamA.number}
+            {myMatchups.map((match: any) => {
+              const isTeamA = match.team_a?.id === myTeam.id;
+              const opponent = isTeamA ? match.team_b : match.team_a;
+              const hasResult = match.result && match.result.length > 0;
+              const myPoints = hasResult ? (isTeamA ? match.result[0].team_a_points : match.result[0].team_b_points) : null;
+
+              return (
+                <div key={match.id} className="bg-secondary/30 rounded-lg p-3 flex items-center gap-3">
+                  <div className={`w-2 h-2 rounded-full shrink-0 ${
+                    match.status === 'completed' ? 'bg-success' : match.status === 'in_progress' ? 'bg-accent live-pulse' : 'bg-muted-foreground'
+                  }`} />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 text-sm">
+                      <span className="font-medium">vs</span>
+                      <div className="w-6 h-6 rounded flex items-center justify-center text-[10px] font-bold"
+                        style={{ backgroundColor: opponent?.color, color: '#fff' }}>{opponent?.number}</div>
+                      <span className="font-medium truncate">{opponent?.name}</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-[10px] text-muted-foreground mt-0.5">
+                      <MapPin className="w-3 h-3" />
+                      D{match.rotation?.day} R{match.rotation?.rotation_number} — {match.base?.name}
+                    </div>
                   </div>
-                  <span className="text-sm">{match.teamA.name}</span>
-                  <span className="text-xs text-muted-foreground">vs</span>
-                  <span className="text-sm">{match.teamB.name}</span>
-                  <div className="w-7 h-7 rounded flex items-center justify-center text-[10px] font-bold" style={{ backgroundColor: match.teamB.color, color: '#fff' }}>
-                    {match.teamB.number}
-                  </div>
+                  {hasResult ? (
+                    <div className="text-right shrink-0">
+                      <span className="font-display text-lg tabular-nums gradient-text">+{myPoints?.toLocaleString()}</span>
+                    </div>
+                  ) : (
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full shrink-0 ${
+                      match.status === 'in_progress' ? 'bg-accent/20 text-accent' : 'bg-secondary text-muted-foreground'
+                    }`}>
+                      {match.status === 'in_progress' ? 'En Vivo' : 'Pendiente'}
+                    </span>
+                  )}
                 </div>
-                <span className="text-xs text-muted-foreground">{match.competition.title}</span>
-              </div>
-            ))}
+              );
+            })}
+            {myMatchups.length === 0 && <p className="text-sm text-muted-foreground">No hay enfrentamientos asignados aún.</p>}
           </div>
         </motion.div>
 
-        {/* Betting Balance */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25 }}
-          className="bg-card card-shadow rounded-xl p-5"
-        >
-          <h3 className="font-display text-lg mb-3">BALANCE DE APUESTAS</h3>
+        {/* Betting */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
+          className="bg-card card-shadow rounded-xl p-5">
+          <h3 className="font-display text-lg mb-3 flex items-center gap-2"><DollarSign className="w-4 h-4 text-accent" /> BALANCE DE APUESTAS</h3>
           <div className="flex items-center justify-between">
-            <span className="font-display text-4xl tabular-nums gradient-text">{myTeam.bettingBalance.toLocaleString()}</span>
+            <span className="font-display text-4xl tabular-nums gradient-text">{myTeam.betting_balance.toLocaleString()}</span>
             <span className="text-xs text-muted-foreground">créditos disponibles</span>
           </div>
-          <Link
-            to="/apuestas"
-            className="mt-4 block text-center gradient-primary py-2.5 rounded-lg text-sm font-medium text-primary-foreground hover:scale-[1.02] active:scale-[0.98] transition-transform"
-          >
+          <Link to="/apuestas" className="mt-4 block text-center gradient-primary py-2.5 rounded-lg text-sm font-medium text-primary-foreground hover:scale-[1.02] active:scale-[0.98] transition-transform">
             Ir a Apuestas
           </Link>
         </motion.div>

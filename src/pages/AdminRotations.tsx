@@ -133,6 +133,9 @@ export default function AdminRotations() {
         <div className="bg-card card-shadow rounded-2xl p-5 mb-6">
           <h3 className="font-display text-lg mb-4 text-muted-foreground">CONTROLES DE ROTACIÓN</h3>
           <div className="flex flex-wrap gap-3">
+            <Button onClick={() => setFullResetConfirmOpen(true)} disabled={isStarting || isFullResetting} variant="destructive" className="flex items-center gap-2">
+              <RotateCcw className="w-4 h-4" /> Reiniciar Todo desde 0
+            </Button>
             <Button onClick={handleStartFromFirst} disabled={isStarting} variant="outline" className="flex items-center gap-2">
               <RotateCcw className="w-4 h-4" /> Empezar desde Rotación 1
             </Button>

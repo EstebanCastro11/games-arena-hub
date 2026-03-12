@@ -302,6 +302,11 @@ export default function AdminRotations() {
                 await supabase.from("matchups").update({ status: "pending" }).neq("status", "pending");
                 // 4. Expire timers
                 await supabase.from("rotation_timer").update({ status: "expired" }).eq("status", "active");
+                // 5. Reset betting: delete all captain bets, event teams, and events; restore balances
+                await supabase.from("captain_bets").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+                await supabase.from("betting_event_teams").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+                await supabase.from("betting_events").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+                await supabase.from("teams").update({ betting_balance: 5000 }).neq("id", "00000000-0000-0000-0000-000000000000");
                 
                 queryClient.invalidateQueries({ queryKey: ["rotations"] });
                 queryClient.invalidateQueries({ queryKey: ["all-matchups"] });

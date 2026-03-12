@@ -14,6 +14,7 @@ export default function CaptainDashboard() {
   const { user, displayName, signOut } = useAuth();
   const navigate = useNavigate();
   const { data: leaderboard = [] } = useLeaderboard();
+  const { data: allTeams = [] } = useTeams();
   const { data: allMatchups = [] } = useAllMatchupsWithDetails();
   const { data: rotations = [] } = useRotations();
   const timer = useRotationTimer();

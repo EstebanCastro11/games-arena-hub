@@ -139,8 +139,9 @@ export default function CaptainDashboard() {
 
                     const isTeamA = match.team_a?.id === myTeam.id;
                     const opponent = isTeamA ? match.team_b : match.team_a;
-                    const hasResult = match.result && match.result.length > 0;
-                    const myPoints = hasResult ? (isTeamA ? match.result[0].team_a_points : match.result[0].team_b_points) : null;
+                    const resultData = Array.isArray(match.result) ? match.result[0] : match.result;
+                    const hasResult = !!resultData;
+                    const myPoints = hasResult ? (isTeamA ? resultData.team_a_points : resultData.team_b_points) : null;
 
                     return (
                       <div key={match.id} className="bg-secondary/30 rounded-lg p-3 flex items-center gap-3">

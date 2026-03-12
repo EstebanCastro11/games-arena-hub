@@ -13,10 +13,18 @@ interface Team {
 interface Matchup {
   team_a: Team | null;
   team_b: Team | null;
+  rotation?: { day: number; rotation_number: number } | null;
 }
 
 export default function MatchupHeatmap({ matchups }: { matchups: Matchup[] }) {
   const [hoveredCell, setHoveredCell] = useState<string | null>(null);
+  const [dayFilter, setDayFilter] = useState<string>("all");
+
+  const filtered = useMemo(() => {
+    if (dayFilter === "all") return matchups;
+    const day = parseInt(dayFilter);
+    return matchups.filter(m => m.rotation?.day === day);
+  }, [matchups, dayFilter]);
 
   const { teams, matrix, maxCount } = useMemo(() => {
     const teamMap = new Map<string, Team>();

@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 interface Team {
   id: string;
@@ -12,16 +13,24 @@ interface Team {
 interface Matchup {
   team_a: Team | null;
   team_b: Team | null;
+  rotation?: { day: number; rotation_number: number } | null;
 }
 
 export default function MatchupHeatmap({ matchups }: { matchups: Matchup[] }) {
   const [hoveredCell, setHoveredCell] = useState<string | null>(null);
+  const [dayFilter, setDayFilter] = useState<string>("all");
+
+  const filtered = useMemo(() => {
+    if (dayFilter === "all") return matchups;
+    const day = parseInt(dayFilter);
+    return matchups.filter(m => m.rotation?.day === day);
+  }, [matchups, dayFilter]);
 
   const { teams, matrix, maxCount } = useMemo(() => {
     const teamMap = new Map<string, Team>();
     const countMap = new Map<string, number>();
 
-    for (const m of matchups) {
+    for (const m of filtered) {
       if (!m.team_a || !m.team_b) continue;
       teamMap.set(m.team_a.id, m.team_a);
       teamMap.set(m.team_b.id, m.team_b);
@@ -44,7 +53,7 @@ export default function MatchupHeatmap({ matchups }: { matchups: Matchup[] }) {
     );
 
     return { teams, matrix, maxCount };
-  }, [matchups]);
+  }, [filtered]);
 
   if (teams.length === 0) return null;
 
@@ -61,10 +70,16 @@ export default function MatchupHeatmap({ matchups }: { matchups: Matchup[] }) {
 
   return (
     <div>
-      <h4 className="font-display text-sm text-muted-foreground mb-3 flex items-center gap-2">
-        MATRIZ DE ENFRENTAMIENTOS
-      </h4>
-
+      <div className="flex items-center justify-between mb-3">
+        <h4 className="font-display text-sm text-muted-foreground flex items-center gap-2">
+          MATRIZ DE ENFRENTAMIENTOS
+        </h4>
+        <ToggleGroup type="single" value={dayFilter} onValueChange={(v) => v && setDayFilter(v)} className="bg-secondary/50 rounded-lg p-0.5">
+          <ToggleGroupItem value="all" className="text-xs px-3 h-7 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">Todos</ToggleGroupItem>
+          <ToggleGroupItem value="1" className="text-xs px-3 h-7 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">Día 1</ToggleGroupItem>
+          <ToggleGroupItem value="2" className="text-xs px-3 h-7 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">Día 2</ToggleGroupItem>
+        </ToggleGroup>
+      </div>
       {/* Legend */}
       <div className="flex items-center gap-4 mb-3 text-[10px] text-muted-foreground">
         <span className="flex items-center gap-1">

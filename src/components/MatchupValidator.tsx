@@ -4,6 +4,7 @@ import { ShieldCheck, ShieldAlert, AlertTriangle, CheckCircle2, ChevronDown, Che
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import MatchupHeatmap from "@/components/MatchupHeatmap";
 
 interface Matchup {
   id: string;
@@ -232,6 +233,9 @@ export default function MatchupValidator({ matchups }: { matchups: Matchup[] }) 
                   </div>
                 </div>
               )}
+
+              {/* Heatmap */}
+              <MatchupHeatmap matchups={matchups} />
 
               {/* All clear */}
               {isClean && (

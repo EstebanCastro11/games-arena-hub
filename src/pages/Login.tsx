@@ -93,7 +93,7 @@ export default function Login() {
 
           <div className="mt-4 text-center">
             <Link to="/registro" className="text-sm text-primary hover:underline flex items-center justify-center gap-1">
-              <UserPlus className="w-3 h-3" /> Registrarse como Capitán
+              <UserPlus className="w-3 h-3" /> Registrarse (Capitán o Juez)
             </Link>
           </div>
         </div>

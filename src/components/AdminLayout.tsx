@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Users, Trophy, Swords, CalendarClock,
-  Megaphone, DollarSign, ClipboardList, Menu, X, ChevronRight, LogOut
+  Megaphone, DollarSign, ClipboardList, Menu, ChevronRight, LogOut, UserCog
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -15,6 +15,7 @@ const navItems = [
   { icon: CalendarClock, label: "Rotaciones", path: "/admin/rotaciones" },
   { icon: DollarSign, label: "Apuestas", path: "/admin/apuestas" },
   { icon: Megaphone, label: "Anuncios", path: "/admin/anuncios" },
+  { icon: UserCog, label: "Usuarios", path: "/admin/usuarios" },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

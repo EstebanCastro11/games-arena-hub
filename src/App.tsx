@@ -18,6 +18,7 @@ import AdminScoring from "./pages/AdminScoring";
 import AdminRotations from "./pages/AdminRotations";
 import AdminBetting from "./pages/AdminBetting";
 import AdminAnnouncements from "./pages/AdminAnnouncements";
+import AdminUsers from "./pages/AdminUsers";
 import CaptainDashboard from "./pages/CaptainDashboard";
 import JudgeDashboard from "./pages/JudgeDashboard";
 import NotFound from "./pages/NotFound";
@@ -49,6 +50,7 @@ const App = () => (
             <Route path="/admin/rotaciones" element={<ProtectedRoute allowedRoles={["admin"]}><AdminRotations /></ProtectedRoute>} />
             <Route path="/admin/apuestas" element={<ProtectedRoute allowedRoles={["admin"]}><AdminBetting /></ProtectedRoute>} />
             <Route path="/admin/anuncios" element={<ProtectedRoute allowedRoles={["admin"]}><AdminAnnouncements /></ProtectedRoute>} />
+            <Route path="/admin/usuarios" element={<ProtectedRoute allowedRoles={["admin"]}><AdminUsers /></ProtectedRoute>} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>

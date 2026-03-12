@@ -269,6 +269,48 @@ export default function AdminRotations() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Full Reset Dialog */}
+      <AlertDialog open={fullResetConfirmOpen} onOpenChange={setFullResetConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>⚠️ ¿Reiniciar TODO desde cero?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esto borrará TODOS los resultados, pondrá TODOS los equipos en 0 puntos, reseteará todas las rotaciones a pendiente y detendrá el timer. Esta acción NO se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={async () => {
+              setFullResetConfirmOpen(false);
+              setIsFullResetting(true);
+              try {
+                // 1. Delete all match results
+                await supabase.from("match_results").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+                // 2. Reset all teams to 0
+                await supabase.from("teams").update({
+                  total_points: 0, wins: 0, losses: 0, draws: 0, matches_played: 0,
+                }).neq("id", "00000000-0000-0000-0000-000000000000");
+                // 3. Reset rotations & matchups
+                await supabase.from("rotations").update({ status: "pending" }).neq("status", "pending");
+                await supabase.from("matchups").update({ status: "pending" }).neq("status", "pending");
+                // 4. Expire timers
+                await supabase.from("rotation_timer").update({ status: "expired" }).eq("status", "active");
+                
+                queryClient.invalidateQueries({ queryKey: ["rotations"] });
+                queryClient.invalidateQueries({ queryKey: ["all-matchups"] });
+                queryClient.invalidateQueries({ queryKey: ["teams"] });
+                toast.success("✅ Todo reiniciado a 0. Listo para empezar de nuevo.");
+              } catch (e: any) {
+                toast.error(e.message);
+              }
+              setIsFullResetting(false);
+            }} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Sí, reiniciar todo
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AdminLayout>
   );
 }

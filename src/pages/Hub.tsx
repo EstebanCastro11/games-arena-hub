@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Trophy, Swords, TrendingUp, Zap, ChevronRight, Megaphone, DollarSign, Users, MapPin, Timer } from "lucide-react";
 import { useLeaderboard, useAnnouncements, useAllMatchupsWithDetails, useDashboardStats } from "@/hooks/useGameData";
-import { useRotationTimer, useCurrentRotation, formatTime } from "@/hooks/useRotationTimer";
+import { useRotationTimer, useCurrentRotation, useForceReloadOnRotationChange, formatTime } from "@/hooks/useRotationTimer";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -18,6 +18,7 @@ export default function Hub() {
   const timer = useRotationTimer();
   const currentRotation = useCurrentRotation();
   const queryClient = useQueryClient();
+  useForceReloadOnRotationChange();
 
   // Realtime for matchups
   useEffect(() => {

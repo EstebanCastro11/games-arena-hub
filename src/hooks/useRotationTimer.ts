@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -115,6 +115,40 @@ export function useCurrentRotation() {
   }, []);
 
   return currentRotation;
+}
+
+/**
+ * Hook that forces a page reload when the rotation_timer changes (new rotation started).
+ * Used on non-admin pages (Hub, Captain, Judge) so users always see the latest rotation.
+ * Skips the very first event (initial load) to avoid reload on mount.
+ */
+export function useForceReloadOnRotationChange() {
+  const isFirstEvent = useRef(true);
+
+  useEffect(() => {
+    const channel = supabase
+      .channel("force-reload-rotation")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "rotation_timer" }, () => {
+        if (isFirstEvent.current) {
+          isFirstEvent.current = false;
+          return;
+        }
+        // Force full page reload to get fresh data
+        window.location.reload();
+      })
+      .subscribe();
+
+    // After subscribing, mark first event as consumed after a short delay
+    // so that genuine INSERTs (not historical) trigger reload
+    const timeout = setTimeout(() => {
+      isFirstEvent.current = false;
+    }, 3000);
+
+    return () => {
+      clearTimeout(timeout);
+      supabase.removeChannel(channel);
+    };
+  }, []);
 }
 
 export function formatTime(seconds: number) {

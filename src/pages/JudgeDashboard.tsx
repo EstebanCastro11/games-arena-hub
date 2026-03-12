@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Swords, LogOut, MapPin, Check } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useBases, useAllMatchupsWithDetails, useRotations } from "@/hooks/useGameData";
+import { useForceReloadOnRotationChange } from "@/hooks/useRotationTimer";
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,6 +16,7 @@ export default function JudgeDashboard() {
   const { data: allMatchups = [] } = useAllMatchupsWithDetails();
   const { data: rotations = [] } = useRotations();
   const queryClient = useQueryClient();
+  useForceReloadOnRotationChange();
 
   // Find bases assigned to this judge (day 1 and day 2)
   const myBases = bases.filter((b: any) => b.judge_user_id === user?.id);

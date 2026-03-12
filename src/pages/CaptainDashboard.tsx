@@ -15,6 +15,24 @@ export default function CaptainDashboard() {
   const { data: leaderboard = [] } = useLeaderboard();
   const { data: allMatchups = [] } = useAllMatchupsWithDetails();
   const { data: rotations = [] } = useRotations();
+  const timer = useRotationTimer();
+  const currentRotation = useCurrentRotation();
+  const queryClient = useQueryClient();
+
+  // Realtime subscription for matchups
+  useEffect(() => {
+    const channel = supabase
+      .channel("captain-matchups")
+      .on("postgres_changes", { event: "*", schema: "public", table: "matchups" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["all-matchups"] });
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "match_results" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["all-matchups"] });
+        queryClient.invalidateQueries({ queryKey: ["leaderboard"] });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [queryClient]);
 
   // Simulate team assignment (first team for demo)
   const myTeam = leaderboard[5] || leaderboard[0];

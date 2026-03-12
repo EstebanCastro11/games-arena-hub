@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { Trophy, LogOut, TrendingUp, DollarSign, CalendarClock, MapPin, Timer } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useTeams } from "@/hooks/useGameData";
 import { useLeaderboard, useAllMatchupsWithDetails, useRotations } from "@/hooks/useGameData";
 import { useRotationTimer, useCurrentRotation, useForceReloadOnRotationChange, formatTime } from "@/hooks/useRotationTimer";
 import { Link, useNavigate } from "react-router-dom";

@@ -26,12 +26,21 @@ export default function Login() {
       return;
     }
 
-    // Role-based redirect will happen after auth state updates
-    // Small delay to let role fetch complete
-    setTimeout(() => {
-      // Check role from the fetched data
-      navigate("/admin");
-    }, 500);
+    // Wait for role to be fetched then redirect
+    const checkRole = async () => {
+      const { data } = await (await import("@/integrations/supabase/client")).supabase
+        .from("user_roles")
+        .select("role")
+        .single();
+      
+      setIsLoading(false);
+      if (data?.role === "captain") {
+        navigate("/capitan");
+      } else {
+        navigate("/admin");
+      }
+    };
+    checkRole();
   };
 
   return (

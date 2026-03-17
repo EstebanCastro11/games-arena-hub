@@ -15,7 +15,7 @@ export default function AdminRotations() {
   const { data: rotations = [] } = useRotations();
   const { data: allMatchups = [] } = useAllMatchupsWithDetails();
   const timer = useRotationTimer();
-  const currentRotation = useCurrentRotation();
+  const currentRotation = rotations.find((r: any) => r.status === 'in_progress') || null;
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [isStarting, setIsStarting] = useState(false);

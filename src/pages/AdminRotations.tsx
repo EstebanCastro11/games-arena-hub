@@ -2,7 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { CalendarClock, MapPin, Play, SkipForward, SkipBack, RotateCcw, Timer } from "lucide-react";
 import { useRotations, useAllMatchupsWithDetails } from "@/hooks/useGameData";
-import { useRotationTimer, useCurrentRotation, formatTime } from "@/hooks/useRotationTimer";
+import { useRotationTimer, formatTime } from "@/hooks/useRotationTimer";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useQueryClient } from "@tanstack/react-query";

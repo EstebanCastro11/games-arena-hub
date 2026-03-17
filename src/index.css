@@ -65,7 +65,7 @@
   }
 
   h1, h2, h3, .display-text {
-    font-family: 'Teko', sans-serif;
+    font-family: 'Times New Roman', 'Georgia', serif;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     text-wrap: balance;

@@ -101,11 +101,11 @@
   }
 
   .glow-primary {
-    box-shadow: 0 0 20px hsl(322 93% 55% / 0.3), 0 0 40px hsl(260 100% 66% / 0.15);
+    box-shadow: 0 0 20px hsl(340 60% 72% / 0.3), 0 0 40px hsl(270 50% 78% / 0.15);
   }
 
   .glow-accent {
-    box-shadow: 0 0 20px hsl(48 96% 58% / 0.3);
+    box-shadow: 0 0 20px hsl(160 40% 75% / 0.3);
   }
 
   .live-pulse {

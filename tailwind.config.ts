@@ -14,8 +14,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ["Geist", "system-ui", "sans-serif"],
-        display: ["Teko", "sans-serif"],
+        sans: ["'Times New Roman'", "Georgia", "serif"],
+        display: ["'Times New Roman'", "Georgia", "serif"],
       },
       colors: {
         border: "hsl(var(--border))",

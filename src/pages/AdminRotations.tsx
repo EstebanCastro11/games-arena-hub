@@ -2,7 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { CalendarClock, MapPin, Play, SkipForward, SkipBack, RotateCcw, Timer } from "lucide-react";
 import { useRotations, useAllMatchupsWithDetails } from "@/hooks/useGameData";
-import { useRotationTimer, useCurrentRotation, formatTime } from "@/hooks/useRotationTimer";
+import { useRotationTimer, formatTime } from "@/hooks/useRotationTimer";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useQueryClient } from "@tanstack/react-query";
@@ -15,7 +15,7 @@ export default function AdminRotations() {
   const { data: rotations = [] } = useRotations();
   const { data: allMatchups = [] } = useAllMatchupsWithDetails();
   const timer = useRotationTimer();
-  const currentRotation = useCurrentRotation();
+  const currentRotation = rotations.find((r: any) => r.status === 'in_progress') || null;
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [isStarting, setIsStarting] = useState(false);
